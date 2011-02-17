@@ -7,7 +7,7 @@
   <author>Florian Weisshardt</author>
   <license>Fraunhofer IPA</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/cob_srs</url>
+  <url>http://ros.org/wiki/srs_get_milk</url>
   <depend package="rospy"/>
   <depend package="actionlib"/>
   <depend package="cob_default_config"/>

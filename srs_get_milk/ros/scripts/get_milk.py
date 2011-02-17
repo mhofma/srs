@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import roslib; roslib.load_manifest('cob_srs')
+import roslib; roslib.load_manifest('srs_get_milk')
 import rospy
 
 from simple_script_server import script

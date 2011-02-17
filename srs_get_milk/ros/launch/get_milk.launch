@@ -20,6 +20,6 @@
 	<include file="$(find cob_script_server)/launch/script_server.launch"/>
 
 	<!-- upload additional parameters -->
-	<rosparam command="load" ns="script_server/sdh" file="$(find cob_srs)/ros/launch/sdh_joint_configurations.yaml"/>
+	<rosparam command="load" ns="script_server/sdh" file="$(find srs_get_milk)/ros/launch/sdh_joint_configurations.yaml"/>
 
 </launch>
