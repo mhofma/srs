@@ -72,21 +72,25 @@ class GetMilk(script):
 		# move milk box above tray
 		handle_tray = self.sss.move("tray", "up", False)
 		handle_torso = self.sss.move("torso", "home", False)
+		handle_head = self.sss.move("head", "front", False)
 		self.sss.move_cart_rel("arm", [[0.2, -0.2, 0.0], [0.0, 0.0, 0.0]])
 		self.sss.move("arm", "grasp-to-tray")
 
 		# wait for tray and torso
+		handle_head.wait()
 		handle_tray.wait()
 		handle_torso.wait()
 
 		# put milk box onto tray
-		self.sss.move_cart_rel("arm", [[-0.02, 0.0, 0.0], [0, 0, 0]])
+		self.sss.move("arm", "tray",False)
 		self.sss.move("sdh", "cylopen")
 
 		# move arm to folded position
 		self.sss.move_cart_rel("arm", [[0.0, 0.0, -0.12], [0, 0, 0]])
+		handle_arm = self.sss.move("arm", "tray-to-folded",False)
+		self.sss.sleep(3)
 		self.sss.move("sdh","cylclosed")
-		self.sss.move("arm", "tray-to-folded")
+		handle_arm.wait()
 
 		# deliver milk box
 		self.sss.move("base", "order")
