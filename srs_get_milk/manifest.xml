@@ -1,7 +1,7 @@
 <package>
-  <description brief="get_milk">
+  <description brief="srs_get_milk">
 
-     get_milk
+     srs_get_milk
 
   </description>
   <author>Florian Weisshardt</author>
