@@ -1,0 +1,4 @@
+sensor_msgs/PointCloud2 points
+uint8 id
+---
+float32[16] matrix
