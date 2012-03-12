@@ -6,6 +6,7 @@ import smach
 import smach_ros
 import sys
 import rosbag
+
 from geometry_msgs.msg import Pose
 
 #import unittest
@@ -15,19 +16,20 @@ from or_state import *
 class TestStates:
 	def __init__(self, *args):
 		rospy.init_node('test_states')
+
 	
 	def test_object_detection(self):
-		bag = rosbag.Bag('/home/mhofma/kinect.bag')
-		lastMsg = 0
-		for topic, msg, t in bag.read_messages(topics=['/camera/depth/points']):
-			lastMsg = msg
-		bag.close()
+		#bag = rosbag.Bag('/home/mhofma/kinect.bag')
+		#lastMsg = 0
+		#for topic, msg, t in bag.read_messages(topics=['/camera/depth/points']):
+	#		lastMsg = msg
+		#bag.close()
 		
 		
 		# create a SMACH state machine
 		SM = smach.StateMachine(outcomes=['overall_succeeded','overall_failed'])
-		SM.userdata.object_id = 1
-		SM.userdata.target_object_pointcloud = lastMsg
+		SM.userdata.object_id = 3
+		#SM.userdata.target_object_pointcloud = lastMsg
 	
 		# open the container
 		with SM:

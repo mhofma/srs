@@ -62,9 +62,9 @@ import smach
 import smach_ros
 import actionlib
 import operator
+from threading import Semaphore
 
-import sensor_msgs
-
+from sensor_msgs.msg import *
 from srs_or.srv import *
 
 
@@ -72,18 +72,29 @@ from srs_or.srv import *
 #
 # This state will initialize all hardware drivers.
 class DetectObject(smach.State):
+	def kinect_callback(self, data):
+		self.pointcloud = data
+		self.kinect_sub.unregister()
+		self.kinect_sem.release()
+	
 	def __init__(self):
+		self.kinect_sem = Semaphore(0)
 		smach.State.__init__(self,
 		outcomes=['succeeded', 'failed', 'not_completed', 'preempted'],
-		input_keys=['object_id','target_object_pointcloud'],
+		input_keys=['object_id'],
 		output_keys=['target_object_pose'])
 		self.or_client =  rospy.ServiceProxy('/or', or_request)
-
 	
 	def execute(self, userdata):
+		#self.kinect_sub = rospy.Subscriber("/cam3d/depth/points", sensor_msgs/PointCloud2, self.kinect_callback)
+		self.kinect_sub = rospy.Subscriber("/camera/depth/points", PointCloud2, self.kinect_callback)
+		self.kinect_sem.acquire()
+		print 'test'
+		
+		
 		print userdata.object_id
-		print userdata.target_object_pointcloud.header
-		retVal = self.or_client(userdata.target_object_pointcloud, userdata.object_id)
+		print self.pointcloud.header
+		retVal = self.or_client(self.pointcloud, userdata.object_id)
 		#retVal = self.or_client(8, userdata.object_id)
 		#sensor_msgs/PointCloud2
 		print '4x4 Matrix values:'
