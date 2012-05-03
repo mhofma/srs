@@ -62,7 +62,9 @@ import smach
 import smach_ros
 import actionlib
 import operator
-from threading import Semaphore
+from threading import Semaphore, Condition
+from geometry_msgs.msg import Pose, PoseStamped, Point, Point32, PointStamped, Vector3, Vector3Stamped, Quaternion, QuaternionStamped
+import tf.transformations
 
 from sensor_msgs.msg import *
 from srs_or.srv import *
@@ -75,22 +77,56 @@ class DetectObject(smach.State):
 	def kinect_callback(self, data):
 		self.pointcloud = data
 		self.kinect_sub.unregister()
-		self.kinect_sem.release()
+		self.kinect_cond.acquire()
+		self.newPointcloud = True
+		self.kinect_cond.notify()
+		self.kinect_cond.release()
 	
 	def __init__(self):
-		self.kinect_sem = Semaphore(0)
+		self.kinect_cond = Condition()
 		smach.State.__init__(self,
 		outcomes=['succeeded', 'failed', 'not_completed', 'preempted'],
 		input_keys=['object_id'],
 		output_keys=['target_object_pose'])
 		self.or_client =  rospy.ServiceProxy('/or', or_request)
+		self.or_publ = rospy.Publisher('/prof_pose', PoseStamped)
+		self.newPointcloud = False
+	
+	##convert a 4x4 matrix stored as vectore to a Pose message 
+	def mat_to_pose(self,vecMat):
+		pose = PoseStamped()
+		print vecMat
+		mat = [list(vecMat[0:4]),list(vecMat[4:8]),list(vecMat[8:12]),list(vecMat[12:16])]
+		print mat
+		pose.pose.position.x = vecMat[3]/1000.0
+		pose.pose.position.y = vecMat[7]/1000.0
+		pose.pose.position.z = vecMat[11]/1000.0
+		quat = tf.transformations.quaternion_from_matrix(mat)
+		pose.pose.orientation.x = quat[0]
+		pose.pose.orientation.y = quat[1]
+		pose.pose.orientation.z = quat[2]
+		pose.pose.orientation.w = quat[3]
+		return pose
 	
 	def execute(self, userdata):
-		#self.kinect_sub = rospy.Subscriber("/cam3d/depth/points", sensor_msgs/PointCloud2, self.kinect_callback)
-		self.kinect_sub = rospy.Subscriber("/camera/depth/points", PointCloud2, self.kinect_callback)
-		self.kinect_sem.acquire()
-		print 'test'
+		self.kinect_cond.acquire()
 		
+		self.newPointcloud = False
+		max_cnt = 3
+		cnt = 0
+		while self.newPointcloud == False and cnt < max_cnt:
+			#self.kinect_sub = rospy.Subscriber("/cam3d/depth/points", PointCloud2, self.kinect_callback)
+			self.kinect_sub = rospy.Subscriber("/camera/depth/points", PointCloud2, self.kinect_callback)
+			self.kinect_cond.wait(10.0)
+			if self.newPointcloud == False:
+				self.kinect_sub.unregister()
+				cnt = cnt + 1
+				print 'No Kinect available'
+		
+		self.kinect_cond.release()
+		
+		if cnt >= max_cnt:
+			return 'failed'
 		
 		print userdata.object_id
 		print self.pointcloud.header
@@ -98,8 +134,11 @@ class DetectObject(smach.State):
 		#retVal = self.or_client(8, userdata.object_id)
 		#sensor_msgs/PointCloud2
 		print '4x4 Matrix values:'
-		for val in retVal.matrix:
-			print val
+			
+		pose = self.mat_to_pose(retVal.matrix)
+		pose.header = self.pointcloud.header
+		userdata.target_object_pose = pose
+		self.or_publ.publish(pose)
 		return 'succeeded'
 
 

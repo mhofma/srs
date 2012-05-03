@@ -28,7 +28,7 @@ class TestStates:
 		
 		# create a SMACH state machine
 		SM = smach.StateMachine(outcomes=['overall_succeeded','overall_failed'])
-		SM.userdata.object_id = 3
+		SM.userdata.object_id = 1
 		#SM.userdata.target_object_pointcloud = lastMsg
 	
 		# open the container
@@ -37,6 +37,7 @@ class TestStates:
 			transitions={'succeeded':'overall_succeeded', 'failed':'overall_failed', 'not_completed':'overall_failed', 'preempted':'overall_failed'})
 		try:
 			SM.execute()
+			print SM.userdata.target_object_pose
 		except:
 			error_message = "Unexpected error:", sys.exc_info()[0]
 			#self.fail(error_message)
